@@ -1,4 +1,4 @@
-# Intervyou — EchoSphere 🎙️
+<!-- # Intervyou — EchoSphere 🎙️
 
 **Adaptive Multi-Agent AI Voice Interview Platform**
 Built for Agora Hackathon 2026 · Round II · Track: Coordinated AI Interview Panel
@@ -177,4 +177,8 @@ This scaffold ships with working boilerplate (server, sockets, routes, persona s
 
 ---
 
-*Built with Agora RTC / SDRTN® and the Agora Conversational AI Engine.*
+*Built with Agora RTC / SDRTN® and the Agora Conversational AI Engine.* -->
+
+
+
+

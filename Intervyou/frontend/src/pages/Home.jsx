@@ -1,4 +1,7 @@
 
+
+
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -113,13 +116,13 @@ import { useAuth } from "../context/AuthContext.jsx";
       <div className="max-w-md w-full bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold mb-3">
-            <Sparkles size={13} /> Agora Hackathon 2026 Round II
+            <Sparkles size={13} /> Resume-Grounded Voice Interview
           </div>
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
-            Intervyou — EchoSphere
+            Intervyou AI
           </h1>
           <p className="text-slate-400 text-xs mt-1.5">
-            Adaptive Multi-Agent AI Voice Interview Panel
+            Practice with an adaptive AI interview panel built around your experience
           </p>
         </div>
 
@@ -182,7 +185,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 
           <div className="p-3 bg-slate-950 rounded-xl border border-slate-800/80 flex items-start gap-2.5 text-[11px] text-slate-400">
             <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-            <span>Voice coordinated over Agora SDRTN® with sub-second latency and interruption support.</span>
+            <span>Your resume guides the questions, follow-ups, and evidence-based assessment.</span>
           </div>
 
           {error && (

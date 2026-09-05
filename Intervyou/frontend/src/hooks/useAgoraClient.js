@@ -328,6 +328,7 @@
 // export default useAgoraClient;
 
 
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import AgoraRTC from "agora-rtc-sdk-ng";
 import AgoraRTM from "agora-rtm";
@@ -339,6 +340,7 @@ export function useAgoraClient() {
   const [audioVolume, setAudioVolume] = useState(0);
   const [remoteSpeaking, setRemoteSpeaking] = useState(false);
   const [remoteUsers, setRemoteUsers] = useState([]);
+  const [connectionStatus, setConnectionStatus] = useState("disconnected");
 
   // Real transcript + agent activity state, delivered over Signaling (RTM)
   // by Agora's managed Conversational AI agent.
@@ -410,6 +412,9 @@ export function useAgoraClient() {
     };
 
     const onConnection = (current, previous, reason) => {
+      if (mountedRef.current) {
+        setConnectionStatus(current === "CONNECTED" ? "connected" : current.toLowerCase());
+      }
       console.log("[AgoraRTC] Connection state:", {
         current,
         previous,
@@ -505,6 +510,7 @@ export function useAgoraClient() {
         if (mountedRef.current) {
           setJoined(true);
           setIsMuted(false);
+          setConnectionStatus("connected");
         }
 
         console.log("[AgoraRTC] Joined and published microphone:", {
@@ -578,7 +584,7 @@ export function useAgoraClient() {
     setIsMuted(nextMuted);
   }, [isMuted]);
 
-  const leaveSession = useCallback(async () => {
+  const leaveSession = useCallback(async ({ preserveState = false } = {}) => {
     const mic = micRef.current;
     micRef.current = null;
     if (mic) {
@@ -616,12 +622,18 @@ export function useAgoraClient() {
       setRemoteSpeaking(false);
       setAudioVolume(0);
       setIsMuted(false);
-      setTranscript([]);
+      if (!preserveState) setTranscript([]);
       setAgentSpeaking(false);
       setAgentThinking(false);
-      setDataMessages([]);
+      if (!preserveState) setDataMessages([]);
+      setConnectionStatus("disconnected");
     }
   }, []);
+
+  const reconnectSession = useCallback(async (params) => {
+    await leaveSession({ preserveState: true });
+    return joinSession(params);
+  }, [joinSession, leaveSession]);
 
   const sendDataMessage = useCallback(async (message) => {
     const client = clientRef.current;
@@ -640,6 +652,7 @@ export function useAgoraClient() {
 
   return {
     joined,
+    connectionStatus,
     isMuted,
     audioVolume,
     remoteSpeaking,
@@ -650,9 +663,11 @@ export function useAgoraClient() {
     dataMessages,
     sendDataMessage,
     joinSession,
+    reconnectSession,
     toggleMic,
     leaveSession,
   };
 }
 
 export default useAgoraClient;
+
