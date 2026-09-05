@@ -1,6 +1,8 @@
 
 
 
+
+
 import {
   DEFAULT_PANEL_ID,
   INTERVIEW_PANELS,
@@ -127,15 +129,6 @@ export async function startInterview(req, res) {
       agoraAgentId: agent.agentId,
     });
     orchestratorStarted = true;
-
-    await agoraService.thinkAgent(
-      agent.agentId,
-      [
-        `Resume evidence to use for targeted questions: ${resumeText.slice(0, 280)}`,
-        `Target role: ${role}. Candidate level: ${level}.`,
-        "Start now as the Technical Lead. Ask one short question about a specific resume project or technology. Do not invent facts or ask multiple questions.",
-      ].join("\n\n")
-    );
 
       return res.status(201).json({
   success: true,
@@ -298,6 +291,33 @@ export async function endInterview(req, res) {
   }
 }
 
+export async function readyInterview(req, res) {
+  try {
+    const { sessionId, agentId } = req.body || {};
+    if (!sessionId || !agentId) {
+      return errorResponse(res, new Error("sessionId and agentId are required"), 400);
+    }
+
+    const interview = await Interview.findOne({ sessionId: String(sessionId) });
+    if (!interview) {
+      return errorResponse(res, new Error("Interview session not found"), 404);
+    }
+
+    await agoraService.thinkAgent(
+      String(agentId),
+      [
+        `Resume evidence to use for targeted questions: ${String(interview.resumeText || "").slice(0, 280)}`,
+        `Target role: ${interview.role || "Candidate"}. Candidate level: ${interview.level || "Mid-Senior"}.`,
+        "Start now as the Technical Lead. Ask one short question about a specific resume project or technology. Do not invent facts or ask multiple questions.",
+      ].join("\n\n")
+    );
+
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    return errorResponse(res, error);
+  }
+}
+
 export async function speakInterviewAgent(req, res) {
   try {
     const { agentId, text } = req.body || {};
@@ -315,6 +335,7 @@ export const stopInterview = endInterview;
 
 export default {
   startInterview,
+  readyInterview,
   getInterviewHistory,
   getInterviewReport,
   endInterview,

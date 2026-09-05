@@ -1,7 +1,6 @@
 
 
 
-
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
@@ -123,6 +122,7 @@ export default function InterviewRoom() {
   const pendingSocketMessagesRef = useRef([]);
   const sentTranscriptIdsRef = useRef(new Set());
   const socketRetryRef = useRef(null);
+  const greetingStartedRef = useRef(false);
 
   const rtc = location.state?.rtc;
   const rtcAppId = rtc?.appId;
@@ -316,6 +316,33 @@ export default function InterviewRoom() {
           rtmToken: rtcRtmToken,
         });
 
+        // joinSession resolves only after Agora has created and published the
+        // candidate microphone. Start the AI greeting only after that point.
+        if (
+          active &&
+          !greetingStartedRef.current &&
+          typeof authFetch === "function" &&
+          location.state?.agentId
+        ) {
+          greetingStartedRef.current = true;
+          const readyResponse = await authFetch("/api/interview/ready", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              sessionId,
+              agentId: location.state.agentId,
+            }),
+          });
+
+          if (!readyResponse.ok) {
+            greetingStartedRef.current = false;
+            console.warn(
+              "[InterviewRoom] Could not start the initial AI question:",
+              await readyResponse.text().catch(() => "unknown error")
+            );
+          }
+        }
+
         if (active) {
           console.log("[InterviewRoom] Agora joined successfully");
         }
@@ -333,7 +360,18 @@ export default function InterviewRoom() {
       active = false;
       // Intentionally no leaveSession() here; it can cancel an active join.
     };
-  }, [rtcAppId, rtcChannel, rtcToken, rtcUid, rtcRtmUid, rtcRtmToken, joinSession]);
+  }, [
+    rtcAppId,
+    rtcChannel,
+    rtcToken,
+    rtcUid,
+    rtcRtmUid,
+    rtcRtmToken,
+    joinSession,
+    authFetch,
+    sessionId,
+    location.state?.agentId,
+  ]);
 
   // Start the webcam without opening a second microphone stream.
   useEffect(() => {
