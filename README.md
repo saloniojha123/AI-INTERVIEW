@@ -860,6 +860,13 @@ cd frontend
 npm run build
 ```
 
+## Deployment
+
+### Live URLs
+- **Frontend:** https://ai-interview-41hm.vercel.app
+- **Backend:** https://ai-interview-5pna.onrender.com
+
+
 ## Team
 
 | Name | Role |
