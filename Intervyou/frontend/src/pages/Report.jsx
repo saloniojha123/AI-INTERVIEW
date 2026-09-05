@@ -1,3 +1,7 @@
+
+
+
+
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
@@ -7,6 +11,8 @@ import {
   FileText,
   Gauge,
   MessageSquare,
+  Download,
+  Printer,
   ShieldAlert,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -83,7 +89,7 @@ export default function Report() {
   const averageWords = candidateTurns.length ? candidateWords / candidateTurns.length : 0;
   const flagPenalty = flags.length * 8;
 
-  const scorecards = [
+  const calculatedScorecards = [
     {
       label: "Interview Engagement",
       score: clamp(55 + candidateTurns.length * 8 - flagPenalty),
@@ -109,6 +115,13 @@ export default function Report() {
       bar: flags.length ? "bg-amber-500" : "bg-purple-500",
     },
   ];
+  const scorecards = report.summary?.scores?.length
+    ? report.summary.scores.map((card) => ({
+        ...card,
+        bar: card.bar || "bg-blue-500",
+        color: card.color || "text-blue-400",
+      }))
+    : calculatedScorecards;
 
   const strengths = [];
   if (candidateTurns.length >= 3) strengths.push("Provided multiple answers during the session, giving the panel useful evaluation evidence.");
@@ -123,8 +136,28 @@ export default function Report() {
         "Use a clear situation, action, and result structure for behavioural questions.",
       ];
 
+  const downloadReport = () => {
+    const payload = {
+      sessionId,
+      role: targetRole,
+      level: targetLevel,
+      report,
+      transcript,
+      exportedAt: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `intervyou-report-${sessionId || "session"}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
   return (
-    <div className="min-h-screen bg-[#0f172a] p-6 font-sans text-slate-100 lg:p-10">
+    <div className="print-report min-h-screen bg-[#0f172a] p-6 font-sans text-slate-100 lg:p-10">
       <div className="mx-auto flex max-w-5xl flex-col gap-8">
         <header className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-6 sm:flex-row sm:items-center">
           <div>
@@ -139,9 +172,17 @@ export default function Report() {
               Target Profile: <strong className="text-slate-200">{targetRole}</strong> ({targetLevel})
             </p>
           </div>
-          <button type="button" onClick={() => navigate("/")} className="flex items-center gap-2 self-start rounded-xl border border-slate-800 bg-slate-900 px-4 py-2.5 text-xs font-semibold text-slate-300 transition hover:bg-slate-800 sm:self-auto">
-            <ArrowLeft size={14} /> Start New Interview
-          </button>
+          <div className="flex flex-wrap gap-2 print:hidden">
+            <button type="button" onClick={downloadReport} className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2.5 text-xs font-semibold text-slate-300 transition hover:bg-slate-800">
+              <Download size={14} /> JSON
+            </button>
+            <button type="button" onClick={() => window.print()} className="flex items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 px-3 py-2.5 text-xs font-semibold text-blue-300 transition hover:bg-blue-500/20">
+              <Printer size={14} /> Save PDF
+            </button>
+            <button type="button" onClick={() => navigate("/")} className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2.5 text-xs font-semibold text-slate-300 transition hover:bg-slate-800">
+              <ArrowLeft size={14} /> New Interview
+            </button>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -158,6 +199,16 @@ export default function Report() {
             </div>
           ))}
         </div>
+
+        {report.summary && (
+          <section className="print-report-accent rounded-3xl border border-blue-500/20 bg-blue-500/5 p-6">
+            <p className="text-xs font-bold uppercase tracking-wider text-blue-400">Overall assessment</p>
+            <div className="mt-2 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+              <div><strong className="text-4xl text-white">{report.summary.overallScore ?? "—"}</strong><span className="ml-2 text-xs text-slate-500">/ 100 evidence score</span></div>
+              <p className="rounded-xl border border-slate-700 bg-slate-950/50 px-4 py-2 text-sm font-semibold text-slate-200">{report.summary.recommendation || "Assessment complete"}</p>
+            </div>
+          </section>
+        )}
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <section className="rounded-3xl border border-slate-800 bg-slate-900/50 p-6">
@@ -180,7 +231,7 @@ export default function Report() {
           <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4"><ShieldAlert className="mb-2 text-amber-400" size={18} /><p className="text-xs text-slate-400">Assessment flags</p><strong className="text-xl text-white">{flags.length}</strong></div>
         </section>
 
-        <section className="rounded-3xl border border-slate-800 bg-slate-900/40 p-6">
+        <section className="print-transcript rounded-3xl border border-slate-800 bg-slate-900/40 p-6">
           <div className="mb-4 flex items-center justify-between border-b border-slate-800 pb-3">
             <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-300"><FileText size={15} /> Verified Dialogue Log ({transcript.length} turns)</h2>
             <span className="text-[11px] text-slate-500">Transcript-linked evidence</span>
@@ -189,7 +240,7 @@ export default function Report() {
             <div className="max-h-96 space-y-3 overflow-y-auto pr-2 text-xs">
               {transcript.map((item, index) => {
                 const isCandidate = item.role === "Candidate" || item.speaker === "candidate";
-                return <div key={item.id || index} className={`rounded-2xl border p-3.5 ${isCandidate ? "ml-4 border-indigo-500/20 bg-indigo-950/20" : "mr-4 border-slate-800/80 bg-slate-950/40"}`}>
+                return <div key={item.id || index} className={`print-transcript-entry rounded-2xl border p-3.5 ${isCandidate ? "ml-4 border-indigo-500/20 bg-indigo-950/20" : "mr-4 border-slate-800/80 bg-slate-950/40"}`}>
                   <div className="mb-1 flex items-center justify-between text-[10px]"><span className={isCandidate ? "font-semibold text-indigo-300" : "font-semibold text-blue-400"}>{isCandidate ? "Candidate" : item.speakerName || item.speaker || "AI Panel"}</span><span className="font-mono text-slate-500">{formatTimestamp(item.timestamp)}</span></div>
                   <p className="leading-relaxed text-slate-300">{item.text}</p>
                 </div>;
@@ -201,3 +252,8 @@ export default function Report() {
     </div>
   );
 }
+
+
+
+
+

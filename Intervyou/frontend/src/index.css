@@ -1,7 +1,106 @@
+/
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
   @apply bg-slate-950 text-slate-100;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+
+  html,
+  body,
+  #root {
+    min-height: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+  }
+
+  body {
+    color: #111827 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* AppShell uses a fixed-height viewport for the live application. */
+  #root > div,
+  #root > div > aside,
+  #root > div > main {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+  }
+
+  #root > div > aside {
+    display: none !important;
+  }
+
+  #root > div > main {
+    width: 100% !important;
+    background: #ffffff !important;
+  }
+
+  .print-report {
+    max-width: none !important;
+    min-height: auto !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #111827 !important;
+  }
+
+  .print-report * {
+    color: #111827 !important;
+    border-color: #d1d5db !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .print-report .print-report-accent {
+    background: #eff6ff !important;
+  }
+
+  .print-report .bg-slate-800 {
+    background: #e5e7eb !important;
+  }
+
+  .print-report .bg-indigo-500,
+  .print-report .bg-emerald-500,
+  .print-report .bg-blue-500,
+  .print-report .bg-purple-500,
+  .print-report .bg-amber-500 {
+    background-color: currentColor !important;
+  }
+
+  .print-report .max-h-96 {
+    max-height: none !important;
+  }
+
+  .print-report .overflow-y-auto {
+    overflow: visible !important;
+  }
+
+  .print-report section,
+  .print-report header,
+  .print-report .print-keep-together {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print-report .print-transcript {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  .print-report .print-transcript-entry {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 }

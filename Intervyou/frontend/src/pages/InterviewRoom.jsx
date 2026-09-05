@@ -1,3 +1,7 @@
+
+
+
+
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
@@ -11,7 +15,7 @@ import {
   Video,
   VideoOff,
   Volume2,
-  LayoutDashboard,
+  PenLine,
 } from "lucide-react";
 import { useAgoraClient } from "../hooks/useAgoraClient.js";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -612,7 +616,8 @@ const activeSpeaker =
                 }`}
                 title={whiteboardOpen ? "Close Whiteboard" : "Open System Design Whiteboard"}
               >
-                <LayoutDashboard size={16} />
+                <PenLine size={16} />
+                <span className="hidden text-xs font-semibold sm:inline">Whiteboard</span>
               </button>
 
               <button
@@ -731,7 +736,5 @@ const activeSpeaker =
     </div>
   );
 }
-
-
 
 
